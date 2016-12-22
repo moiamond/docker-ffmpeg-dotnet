@@ -1,35 +1,18 @@
-FROM moiamond/docker-ffmpeg-base-debian:3.2.2
+FROM moiamond/ffmpeg-windowsservercore:3.1.1-hotfix-share
 MAINTAINER moiamond@gmail.com
-
-
-# Install .NET Core dependencies
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-# .NET Core dependencies
-        libc6 \
-        libcurl3 \
-        libgcc1 \
-        libgssapi-krb5-2 \
-        libicu52 \
-        liblttng-ust0 \
-        libssl1.0.0 \
-        libstdc++6 \
-        libunwind8 \
-        libuuid1 \
-        zlib1g \
-        curl \
-    && rm -rf /var/lib/apt/lists/*
 
 
 # Install .NET Core SDK
 ENV DOTNET_SDK_VERSION 1.0.0-preview2-003156
-ENV DOTNET_SDK_DOWNLOAD_URL https://dotnetcli.blob.core.windows.net/dotnet/preview/Binaries/$DOTNET_SDK_VERSION/dotnet-dev-debian-x64.$DOTNET_SDK_VERSION.tar.gz
+ENV DOTNET_SDK_DOWNLOAD_URL https://dotnetcli.blob.core.windows.net/dotnet/preview/Binaries/$DOTNET_SDK_VERSION/dotnet-dev-win-x64.$DOTNET_SDK_VERSION.zip
 
-RUN curl -SL $DOTNET_SDK_DOWNLOAD_URL --output dotnet.tar.gz \
-    && mkdir -p /usr/share/dotnet \
-    && tar -zxf dotnet.tar.gz -C /usr/share/dotnet \
-    && rm dotnet.tar.gz \
-    && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
+RUN powershell -NoProfile -Command \
+        $ErrorActionPreference = 'Stop'; \
+        Invoke-WebRequest %DOTNET_SDK_DOWNLOAD_URL% -OutFile dotnet.zip; \
+        Expand-Archive dotnet.zip -DestinationPath '%ProgramFiles%\dotnet'; \
+        Remove-Item -Force dotnet.zip
+
+RUN setx /M PATH "%PATH%;%ProgramFiles%\dotnet"
 
 # Trigger the population of the local package cache
 ENV NUGET_XMLDOC_MODE skip
@@ -37,6 +20,4 @@ RUN mkdir warmup \
     && cd warmup \
     && dotnet new \
     && cd .. \
-    && rm -rf warmup \
-    && rm -rf /tmp/NuGetScratch
-
+    && rmdir /q/s warmup
