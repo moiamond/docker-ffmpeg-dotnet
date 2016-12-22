@@ -1,4 +1,4 @@
-FROM moiamond/ffmpeg-windowsservercore:3.1.1-hotfix-share
+FROM moiamond/ffmpeg-windowsservercore:3.1.1-hotfix-2-share
 MAINTAINER moiamond@gmail.com
 
 
